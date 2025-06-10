@@ -184,13 +184,7 @@ class NioFlow(parallelism: Int,
         drsPath.getFileHash
       }.map(Option(_))
       case s3Path: S3Path => IO {
-        // Get checksum (CRC64NVME if available, otherwise eTag)
-        val checksum = s3Path.getChecksum
-        // Check if this is the CRC64NVME or eTag
-        if (checksum != s3Path.eTag)
-          Option(FileHash(HashType.S3CRC64NVME, checksum))
-        else
-          Option(FileHash(HashType.S3Etag, checksum))
+        Option(FileHash(HashType.S3Etag, s3Path.eTag))
       }
       case _ => IO.pure(None)
     }
