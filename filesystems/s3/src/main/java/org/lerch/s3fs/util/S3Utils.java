@@ -36,7 +36,11 @@ public class S3Utils {
         S3Client client = s3Path.getFileStore().getClient();
         // try to find the element with the current key (maybe with end slash or maybe not.)
         try {
-            HeadObjectResponse metadata = client.headObject(HeadObjectRequest.builder().bucket(bucketName).key(key).build());
+            HeadObjectResponse metadata = client.headObject(HeadObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .checksumMode(ChecksumMode.ENABLED)
+                .build());
             Owner objectOwner = Owner.builder().build();
             try {
                 GetObjectAclResponse acl = client.getObjectAcl(GetObjectAclRequest.builder().bucket(bucketName).key(key).build());
@@ -53,6 +57,9 @@ public class S3Utils {
                 .owner(objectOwner)
                 .size(metadata.contentLength())
                 .storageClass(metadata.storageClassAsString());
+                
+            // Note: CRC64NVME checksums are not available in the regular S3 client
+            // We'll implement CRC64NVME support using the AWS CRT client in a separate method
 
             return builder.build();
         } catch (S3Exception e) {
